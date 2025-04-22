@@ -37,8 +37,8 @@ const ImageUploader = () => {
 
   
 
-      const { uploadURL } = response.data;
-      console.log("ghjghjhjkhjkhkjhkj"+uploadURL, response.data);
+      //const { uploadURL } = response.data;
+      const uploadURL = "https://cs516-lambda-ecommerce-images.s3.amazonaws.com/"+"filename";
       // Upload the file to S3 using the pre-signed URL
       await axios.put(uploadURL, file, {
         headers: { "Content-Type": file.type },
