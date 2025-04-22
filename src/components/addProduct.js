@@ -22,6 +22,15 @@ const ImageUploader = () => {
       const filename = encodeURIComponent(file.name);
       const contentType = file.type;
     console.log("file size :"+file.size);
+
+    //const { uploadURL } = response.data;
+    const uploadURL = "https://cs516-lambda-ecommerce-images.s3.amazonaws.com/"+"filename";
+    // Upload the file to S3 using the pre-signed URL
+    await axios.put(uploadURL, file, {
+      headers: { "Content-Type": file.type },
+
+    });
+
       
       // Send POST request to API Gateway
       const response = await axios.post(
@@ -34,18 +43,8 @@ const ImageUploader = () => {
           price
         }
       );
-
-  
-
-      //const { uploadURL } = response.data;
-      const uploadURL = "https://cs516-lambda-ecommerce-images.s3.amazonaws.com/"+"filename";
-      // Upload the file to S3 using the pre-signed URL
-      await axios.put(uploadURL, file, {
-        headers: { "Content-Type": file.type },
-
-      });
-
       setMessage("Upload successful!");
+      
     } catch (error) {
       console.error("Error uploading file:", error);
       setMessage("Upload failed. Please try again.");
