@@ -1,18 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-function ProductList({ addToCart }) {
+function ProductDashboard({ addToCart }) {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [userToken, setUserToken] = useState("");
+  const [jwtToken, setJwtToken] = useState("");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      setUserToken(token);
-    }
-    fetchProducts(); // 🔥 Call API on page load
+    const handleTokenChange = () => {
+      const token = localStorage.getItem("jwtToken");
+      setJwtToken(token);
+    };
+
+    handleTokenChange();
+    window.addEventListener("storage", handleTokenChange);
+    return () => window.removeEventListener("storage", handleTokenChange);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("jwtToken");
+    setJwtToken("");
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
@@ -20,25 +34,14 @@ function ProductList({ addToCart }) {
       const response = await fetch(
         "https://9ds5geou26.execute-api.us-east-1.amazonaws.com/dev/api-v1-product"
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch products");
-      }
-
+      if (!response.ok) throw new Error("Failed to fetch products");
       const data = await response.json();
-
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("idToken");
-    setUserToken("");
   };
 
   const filteredProducts = products.filter((product) =>
@@ -49,76 +52,68 @@ function ProductList({ addToCart }) {
     <div style={{ padding: "20px" }}>
       <h2>🛍️ Product Catalog</h2>
 
-      {/* 🔐 User Status */}
       <div style={{ marginBottom: "20px" }}>
-        {userToken ? (
-          <div>
-            <p>✅ You are logged in!</p>
-            <button onClick={handleLogout}>Logout</button>
-          </div>
-        ) : (
+        {jwtToken ? (
           <>
-            <p>
-              Already a member? <Link to="/login">Login here</Link>
-            </p>
-            <p>
-              Want To Add Product? <Link to="/add-product">Add Product</Link>
-            </p>
+            <p>✅ Logged in</p>
+            <p><button onClick={handleLogout}>🔓 Logout</button></p>
+            <p><Link to="/add-product">➕ Add Product</Link></p>
+            <p><Link to="/cart">🛒 View Cart</Link></p>
           </>
+        ) : (
+          <p>🔐 <Link to="/login">Login</Link></p>
         )}
       </div>
 
-      {/* 🔍 Search Bar */}
       <input
         type="text"
         placeholder="Search products..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          padding: "10px",
-          width: "300px",
-          marginBottom: "20px",
-          fontSize: "16px",
-        }}
+        style={{ padding: "10px", width: "300px", marginBottom: "20px" }}
       />
 
-      {/* 🔄 Loading Indicator */}
       {loading ? (
         <p>Loading products...</p>
-      ) : filteredProducts.length > 0 ? (
-        filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            style={{
-              border: "1px solid #ccc",
-              margin: "10px 0",
-              padding: "10px",
-              borderRadius: "8px",
-            }}
-          >
-            <h3>{product.name}</h3>
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              style={{
-                width: "150px",
-                height: "150px",
-                objectFit: "cover",
-                marginBottom: "10px",
-              }}
-            />
-            <p>{product.description}</p>
-            <p>
-              <strong>${product.price}</strong>
-            </p>
-            <button onClick={() => addToCart(product)}>Add to Cart</button>
-          </div>
-        ))
       ) : (
-        <p>No products found.</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+          {filteredProducts.map((product) => (
+            <div
+              key={product.id}
+              style={{
+                flex: "1 1 250px",
+                maxWidth: "300px",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                padding: "15px",
+                boxSizing: "border-box",
+              }}
+            >
+              <h3>{product.name}</h3>
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                style={{
+                  width: "100%",
+                  height: "200px",
+                  objectFit: "cover",
+                  borderRadius: "6px",
+                  marginBottom: "10px",
+                }}
+              />
+              <p>{product.description}</p>
+              <p><strong>${product.price}</strong></p>
+              {jwtToken ? (
+                <button onClick={() => addToCart(product)}>Add to Cart</button>
+              ) : (
+                <p style={{ color: "red" }}>🔒 Please login to add to cart</p>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
-export default ProductList;
+export default ProductDashboard;

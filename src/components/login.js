@@ -3,9 +3,11 @@ import "../App.css";
 import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 import { Auth } from "aws-amplify";
+import { useNavigate } from "react-router-dom"; // ✅ NEW
 
 export default function LoginForm() {
   const [jwtToken, setJwtToken] = useState("");
+  const navigate = useNavigate(); // ✅ NEW
 
   useEffect(() => {
     fetchJwtToken();
@@ -16,77 +18,36 @@ export default function LoginForm() {
       const session = await Auth.currentSession();
       const token = session.getIdToken().getJwtToken();
       setJwtToken(token);
+      localStorage.setItem("jwtToken", token);
+
+      // ✅ Redirect to homepage after successful login
+      navigate("/");
     } catch (error) {
       console.log("Error fetching JWT token:", error);
+      localStorage.removeItem("jwtToken");
     }
   };
 
   return (
-    <Authenticator
-      initialState="signIn"
-      components={{
-        SignUp: {
-          FormFields() {
-            return (
-              <>
-                <Authenticator.SignUp.FormFields />
-
-                {/* Custom fields for given_name and family_name */}
-                <div>
-                  <label>First name</label>
-                </div>
-                <input
-                  type="text"
-                  name="given_name"
-                  placeholder="Please enter your first name"
-                />
-                <div>
-                  <label>Last name</label>
-                </div>
-                <input
-                  type="text"
-                  name="family_name"
-                  placeholder="Please enter your last name"
-                />
-                <div>
-                  <label>Email</label>
-                </div>
-                <input
-                  type="text"
-                  name="email"
-                  placeholder="Please enter a valid email"
-                />
-              </>
-            );
-          },
-        },
-      }}
-      services={{
-        async validateCustomSignUp(formData) {
-          if (!formData.given_name) {
-            return {
-              given_name: "First Name is required",
-            };
-          }
-          if (!formData.family_name) {
-            return {
-              family_name: "Last Name is required",
-            };
-          }
-          if (!formData.email) {
-            return {
-              email: "Email is required",
-            };
-          }
-        },
-      }}
-    >
+    <Authenticator>
       {({ signOut, user }) => (
         <div>
           Welcome {user.username}
-          <button onClick={signOut}>Sign out</button>
+          <button
+            onClick={() => {
+              signOut();
+              localStorage.removeItem("jwtToken");
+              navigate("/login"); // ✅ Optional: redirect after logout
+            }}
+          >
+            Sign out
+          </button>
           <h4>Your JWT token:</h4>
-          {jwtToken}
+          <textarea
+            value={jwtToken}
+            readOnly
+            style={{ width: "100%", height: "80px" }}
+          />
         </div>
       )}
     </Authenticator>

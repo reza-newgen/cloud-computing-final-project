@@ -1,15 +1,13 @@
+
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import "./App.css";
 import { Amplify } from "aws-amplify";
 import { awsExports } from "./aws-exports";
-import { Authenticator } from "@aws-amplify/ui-react";
-import "@aws-amplify/ui-react/styles.css";
-import { Auth } from "aws-amplify";
-
 import LoginForm from "./components/login";
 import ProductDashboard from "./components/productDashboard";
 import AddProduct from "./components/addProduct";
+import CartPage from "./components/cart";
+import OrderPage from "./components/OrderPage";
 
 Amplify.configure({
   Auth: {
@@ -20,12 +18,20 @@ Amplify.configure({
 });
 
 function App() {
+  const [cartItems, setCartItems] = useState([]);
+
+  const addToCart = (product) => {
+    setCartItems((prev) => [...prev, product]);
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<ProductDashboard />} />
+        <Route path="/" element={<ProductDashboard addToCart={addToCart} />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/add-product" element={<AddProduct />} />
+        <Route path="/cart" element={<CartPage cartItems={cartItems} />} />
+        <Route path="/order" element={<OrderPage />} />
       </Routes>
     </BrowserRouter>
   );
