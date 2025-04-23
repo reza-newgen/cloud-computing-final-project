@@ -50,7 +50,7 @@ function ProductDashboard({ addToCart }) {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>🛍️ Product Catalog</h2>
+      <h2>🛍️ Product Catalog 11111</h2>
 
       <div style={{ marginBottom: "20px" }}>
         {jwtToken ? (
