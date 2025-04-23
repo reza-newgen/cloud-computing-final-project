@@ -101,6 +101,7 @@ function ProductDashboard({ addToCart }) {
                   marginBottom: "10px",
                 }}
               />
+                
               <p>{product.description}</p>
               <p><strong>${product.price}</strong></p>
               {jwtToken ? (
